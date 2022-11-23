@@ -1,0 +1,4 @@
+# Ignore config files
+package.json
+package-lock.json
+ecosystem.config.js

@@ -1,0 +1,40 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "cockroachdb"
+  url      = env("DATABASE_URL")
+}
+
+model BazaarLog {
+  timestamp         BigInt    @id
+  item_ids          String[]
+  sell_prices       Decimal[]
+  buy_prices        Decimal[]
+  sell_moving_weeks Int[]
+  buy_moving_weeks  Int[]
+}
+
+model AuctionsLog {
+  timestamp   BigInt    @id
+  total_pages Int
+  total_items Int
+  item_ids    String[]
+  lowest_bids Decimal[]
+  item_counts Int[]
+}
+
+model EndedAuctionsLog {
+  timestamp   BigInt    @id
+  total_items Int
+  item_ids    String[]
+  bid_prices  Decimal[]
+  is_bin      Boolean[]
+}
+
+model PlayersLog {
+  timestamp    BigInt @id
+  player_count Int
+  games        Json
+}
