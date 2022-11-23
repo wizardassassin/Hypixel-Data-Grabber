@@ -1,4 +1,4 @@
-import { PrismaClient, Prisma } from "@prisma/client";
+import { PrismaClient } from "@prisma/client";
 import { getBazaar } from "./bazaar";
 import { getAuctions, getEndedAuctions } from "./auctions";
 import { getPlayers } from "./players";
@@ -34,12 +34,8 @@ async function fetchBazaar() {
             data: {
                 timestamp: lastUpdated,
                 item_ids: bazaarObj.productID,
-                sell_prices: bazaarObj.sellPriceSum.map(
-                    (x) => new Prisma.Decimal(x)
-                ),
-                buy_prices: bazaarObj.buyPriceSum.map(
-                    (x) => new Prisma.Decimal(x)
-                ),
+                sell_prices: bazaarObj.sellPriceSum,
+                buy_prices: bazaarObj.buyPriceSum,
                 buy_moving_weeks: bazaarObj.buyMovingWeek,
                 sell_moving_weeks: bazaarObj.sellMovingWeek,
             },
@@ -73,9 +69,7 @@ async function fetchAuctions() {
                 total_pages: totalPages,
                 total_items: totalItems,
                 item_ids: auctionsObj.productID,
-                lowest_bids: auctionsObj.lowestBid.map(
-                    (x) => new Prisma.Decimal(x)
-                ),
+                lowest_bids: auctionsObj.lowestBid,
                 item_counts: auctionsObj.itemCount,
             },
         });

@@ -2,8 +2,8 @@
 CREATE TABLE "BazaarLog" (
     "timestamp" INT8 NOT NULL,
     "item_ids" STRING[],
-    "sell_prices" DECIMAL(65,30)[],
-    "buy_prices" DECIMAL(65,30)[],
+    "sell_prices" FLOAT8[],
+    "buy_prices" FLOAT8[],
     "sell_moving_weeks" INT4[],
     "buy_moving_weeks" INT4[],
 
@@ -16,7 +16,7 @@ CREATE TABLE "AuctionsLog" (
     "total_pages" INT4 NOT NULL,
     "total_items" INT4 NOT NULL,
     "item_ids" STRING[],
-    "lowest_bids" DECIMAL(65,30)[],
+    "lowest_bids" FLOAT8[],
     "item_counts" INT4[],
 
     CONSTRAINT "AuctionsLog_pkey" PRIMARY KEY ("timestamp")
@@ -27,7 +27,7 @@ CREATE TABLE "EndedAuctionsLog" (
     "timestamp" INT8 NOT NULL,
     "total_items" INT4 NOT NULL,
     "item_ids" STRING[],
-    "bid_prices" DECIMAL(65,30)[],
+    "bid_prices" FLOAT8[],
     "is_bin" BOOL[],
 
     CONSTRAINT "EndedAuctionsLog_pkey" PRIMARY KEY ("timestamp")

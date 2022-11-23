@@ -8,20 +8,20 @@ datasource db {
 }
 
 model BazaarLog {
-  timestamp         BigInt    @id
+  timestamp         BigInt   @id
   item_ids          String[]
-  sell_prices       Decimal[]
-  buy_prices        Decimal[]
+  sell_prices       Float[]
+  buy_prices        Float[]
   sell_moving_weeks Int[]
   buy_moving_weeks  Int[]
 }
 
 model AuctionsLog {
-  timestamp   BigInt    @id
+  timestamp   BigInt   @id
   total_pages Int
   total_items Int
   item_ids    String[]
-  lowest_bids Decimal[]
+  lowest_bids Float[]
   item_counts Int[]
 }
 
@@ -29,7 +29,7 @@ model EndedAuctionsLog {
   timestamp   BigInt    @id
   total_items Int
   item_ids    String[]
-  bid_prices  Decimal[]
+  bid_prices  Float[]
   is_bin      Boolean[]
 }
 
