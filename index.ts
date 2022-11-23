@@ -217,9 +217,9 @@ function handleUserExit(signal: unknown) {
 }
 
 // Linux
-// process.on("SIGINT", (code) => {
-//     handleUserExit(code);
-// });
+process.on("SIGINT", (code) => {
+    handleUserExit(code);
+});
 
 // Windows
 process.on("message", function (msg) {
