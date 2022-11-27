@@ -34,25 +34,28 @@ export async function getEndedAuctions() {
     return {
         lastUpdated: json.lastUpdated as number,
         totalItems: parsedAuctions.length,
-        Endedauctions: parsedAuctions,
+        endedAuctions: parsedAuctions,
     };
 }
 
 export async function getAuctions() {
     const data = await fetchAuctionData();
 
+    const auctions = Object.keys(data.data).map(
+        (key) =>
+            ({
+                id: key,
+                bid: data.data[key].bid,
+                count: data.data[key].count,
+            } as AuctionObj)
+    );
+
     return {
         lastUpdated: data.lastUpdated,
         totalPages: data.totalPages,
         totalItems: data.totalItems,
-        auctions: Object.keys(data.data).map(
-            (key) =>
-                ({
-                    id: key,
-                    bid: data.data[key].bid,
-                    count: data.data[key].count,
-                } as AuctionObj)
-        ),
+        totalBinItems: auctions.reduce((a, b) => a + b.count, 0),
+        auctions,
     };
 }
 
@@ -76,7 +79,6 @@ async function fetchAuctionData() {
                 data[id].count++;
             });
     const totalItems = initA.totalAuctions;
-    let missMatch = 0;
     const wait = Promise.all(
         Array.from({ length: initA.totalPages - 1 }, async (_, i) => {
             const json = await fetch(
@@ -84,17 +86,34 @@ async function fetchAuctionData() {
             ).then((res) => res.json());
             const auctions = json.auctions as any[];
             const lastUpdated = json.lastUpdated as number;
-            if (lastUpdated !== initA.lastUpdated) {
-                missMatch = lastUpdated;
+            if (i + 1 === initA.totalPages - 1) {
+                if (lastUpdated !== initA.lastUpdated) {
+                    console.log(
+                        "Auctions lastUpdated Missmatch:",
+                        initA.lastUpdated,
+                        lastUpdated
+                    );
+                }
+                if (json.totalPages !== initA.totalPages) {
+                    console.log(
+                        "Auctions totalPages Missmatch:",
+                        initA.totalPages,
+                        json.totalPages
+                    );
+                }
+                if (json.totalAuctions !== initA.totalAuctions) {
+                    console.log(
+                        "Auctions totalAuctions Missmatch:",
+                        initA.totalAuctions,
+                        json.totalAuctions
+                    );
+                }
             }
             addData(auctions);
         })
     );
     addData(initA.auctions);
     await wait;
-    if (missMatch !== 0) {
-        console.log("Auctions Missmatch:", initA.lastUpdated, missMatch);
-    }
     return {
         lastUpdated: initA.lastUpdated,
         totalPages: initA.totalPages,

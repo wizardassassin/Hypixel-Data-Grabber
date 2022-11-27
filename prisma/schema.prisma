@@ -7,34 +7,47 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
-model BazaarLog {
-  timestamp         BigInt   @id
-  item_ids          String[]
-  sell_prices       Float[]
-  buy_prices        Float[]
-  sell_moving_weeks Int[]
-  buy_moving_weeks  Int[]
+model BazaarTimeLog {
+  lastUpdated     BigInt @id
+  totalSellVolume Int
+  totalBuyVolume  Int
+  totalSellOrders Int
+  totalBuyOrders  Int
+  data            Json
 }
 
-model AuctionsLog {
-  timestamp   BigInt   @id
-  total_pages Int
-  total_items Int
-  item_ids    String[]
-  lowest_bids Float[]
-  item_counts Int[]
+model AuctionTimeLog {
+  lastUpdated      BigInt @id
+  totalAuctions    Int
+  totalBinAuctions Int
+  totalPages       Int
+  data             Json
 }
 
-model EndedAuctionsLog {
-  timestamp   BigInt    @id
-  total_items Int
-  item_ids    String[]
-  bid_prices  Float[]
-  is_bin      Boolean[]
+model EndedAuctionTimeLog {
+  lastUpdated   BigInt @id
+  totalAuctions Int
+  data          Json
 }
 
-model PlayersLog {
-  timestamp    BigInt @id
-  player_count Int
-  games        Json
+model PlayerTimeLog {
+  lastUpdated BigInt @id
+  playerCount Int
+  data        Json
+}
+
+model BoosterTimeLog {
+  lastUpdated    BigInt  @id
+  isDecrementing Boolean
+  data           Json
+}
+
+model LeaderboardsTimeLog {
+  lastUpdated BigInt @id
+  data        Json
+}
+
+model WatchdogTimeLog {
+  lastUpdated BigInt @id
+  data        Json
 }
