@@ -6,12 +6,12 @@ import { getBoosters, getLeaderboards, getPlayers, getWatchdog } from "./other";
 export async function fetchBazaar() {
     const data = await getBazaar();
 
-    const obj = {};
-    for (const val of data.bazaarArr) {
-        // eslint-disable-next-line @typescript-eslint/no-unused-vars
-        const { productID, ...tempval } = val;
-        obj[val.productID] = tempval;
-    }
+    // const obj = {};
+    // for (const val of data.bazaarArr) {
+    //     // eslint-disable-next-line @typescript-eslint/no-unused-vars
+    //     const { productID, ...tempval } = val;
+    //     obj[val.productID] = tempval;
+    // }
 
     await prisma.bazaarTimeLog.create({
         data: {
@@ -20,7 +20,18 @@ export async function fetchBazaar() {
             totalBuyVolume: data.totalBuyVolume,
             totalSellOrders: data.totalSellOrders,
             totalBuyOrders: data.totalBuyOrders,
-            data: obj,
+            // data: obj,
+            itemIds: data.bazaarArr.map((x) => x.productID),
+            sellPrice: data.bazaarArr.map((x) => x.sellPriceSum),
+            buyPrice: data.bazaarArr.map((x) => x.buyPriceSum),
+            sellPriceAvg: data.bazaarArr.map((x) => x.sellPrice),
+            buyPriceAvg: data.bazaarArr.map((x) => x.buyPrice),
+            sellMovingWeek: data.bazaarArr.map((x) => x.sellMovingWeek),
+            buyMovingWeek: data.bazaarArr.map((x) => x.buyMovingWeek),
+            sellVolume: data.bazaarArr.map((x) => x.sellVolume),
+            buyVolume: data.bazaarArr.map((x) => x.buyVolume),
+            sellOrders: data.bazaarArr.map((x) => x.sellOrders),
+            buyOrders: data.bazaarArr.map((x) => x.buyOrders),
         },
     });
 }
@@ -28,21 +39,24 @@ export async function fetchBazaar() {
 export async function fetchAuctions() {
     const data = await getAuctions();
 
-    const obj = {};
-    for (const val of data.auctions) {
-        obj[val.id] = {
-            count: val.count,
-            bid: val.bid,
-        };
-    }
+    // const obj = {};
+    // for (const val of data.auctions) {
+    //     obj[val.id] = {
+    //         count: val.count,
+    //         bid: val.bid,
+    //     };
+    // }
 
-    await prisma.auctionTimeLog.create({
+    await prisma.auctionsTimeLog.create({
         data: {
             lastUpdated: data.lastUpdated,
             totalAuctions: data.totalItems,
             totalBinAuctions: data.totalBinItems,
             totalPages: data.totalPages,
-            data: obj,
+            // data: obj,
+            itemIds: data.auctions.map((x) => x.id),
+            prices: data.auctions.map((x) => x.bid),
+            amounts: data.auctions.map((x) => x.count),
         },
     });
 }
@@ -50,19 +64,22 @@ export async function fetchAuctions() {
 export async function fetchEndedAuctions() {
     const data = await getEndedAuctions();
 
-    const obj = {};
-    for (const val of data.endedAuctions) {
-        obj[val.id] = {
-            bid: val.bid,
-            count: val.bin,
-        };
-    }
+    // const obj = {};
+    // for (const val of data.endedAuctions) {
+    //     obj[val.id] = {
+    //         bid: val.bid,
+    //         count: val.bin,
+    //     };
+    // }
 
-    await prisma.endedAuctionTimeLog.create({
+    await prisma.endedAuctionsTimeLog.create({
         data: {
             lastUpdated: data.lastUpdated,
             totalAuctions: data.totalItems,
-            data: obj,
+            // data: obj,
+            itemIds: data.endedAuctions.map((x) => x.id),
+            prices: data.endedAuctions.map((x) => x.bid),
+            isBin: data.endedAuctions.map((x) => x.bin),
         },
     });
 }
@@ -70,7 +87,7 @@ export async function fetchEndedAuctions() {
 export async function fetchPlayers() {
     const data = await getPlayers();
 
-    await prisma.playerTimeLog.create({
+    await prisma.playersTimeLog.create({
         data: {
             lastUpdated: data.lastUpdated,
             playerCount: data.playerCount,
@@ -82,7 +99,7 @@ export async function fetchPlayers() {
 export async function fetchBoosters() {
     const data = await getBoosters();
 
-    await prisma.boosterTimeLog.create({
+    await prisma.boostersTimeLog.create({
         data: {
             lastUpdated: data.lastUpdated,
             isDecrementing: data.isDecrementing,

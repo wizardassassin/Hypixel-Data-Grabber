@@ -8,35 +8,52 @@ datasource db {
 }
 
 model BazaarTimeLog {
-  lastUpdated     BigInt @id
+  lastUpdated     BigInt   @id
   totalSellVolume Int
   totalBuyVolume  Int
   totalSellOrders Int
   totalBuyOrders  Int
-  data            Json
+  // data            Json
+  itemIds         String[]
+  sellPrice       Float[]
+  buyPrice        Float[]
+  sellPriceAvg    Float[]
+  buyPriceAvg     Float[]
+  sellMovingWeek  Int[]
+  buyMovingWeek   Int[]
+  sellVolume      Int[]
+  buyVolume       Int[]
+  sellOrders      Int[]
+  buyOrders       Int[]
 }
 
-model AuctionTimeLog {
-  lastUpdated      BigInt @id
+model AuctionsTimeLog {
+  lastUpdated      BigInt   @id
   totalAuctions    Int
   totalBinAuctions Int
   totalPages       Int
-  data             Json
+  // data             Json
+  itemIds          String[]
+  prices           Float[]
+  amounts          Int[]
 }
 
-model EndedAuctionTimeLog {
-  lastUpdated   BigInt @id
+model EndedAuctionsTimeLog {
+  lastUpdated   BigInt    @id
   totalAuctions Int
-  data          Json
+  // data          Json
+  itemIds       String[]
+  prices        Float[]
+  isBin         Boolean[]
 }
 
-model PlayerTimeLog {
+model PlayersTimeLog {
   lastUpdated BigInt @id
   playerCount Int
   data        Json
 }
 
-model BoosterTimeLog {
+model BoostersTimeLog {
   lastUpdated    BigInt  @id
   isDecrementing Boolean
   data           Json

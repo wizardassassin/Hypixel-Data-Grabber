@@ -19,6 +19,8 @@ import * as dotenv from "dotenv";
 
 dotenv.config();
 
+importExitHandler();
+
 async function main() {
     console.time("Elapsed");
     try {
@@ -62,8 +64,6 @@ async function main() {
     console.timeEnd("Elapsed");
     process.exit(0);
 }
-
-importExitHandler();
 
 main();
 
