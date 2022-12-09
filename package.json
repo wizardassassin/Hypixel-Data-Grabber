@@ -7,8 +7,8 @@
   "scripts": {
     "test": "cd dist && node .",
     "build": "tsc",
-    "start": "pm2 start ecosystem.config.js",
-    "stop": "pm2 stop ecosystem.config.js",
+    "start": "pm2 start ecosystem.config.cjs",
+    "stop": "pm2 stop ecosystem.config.cjs",
     "watch": "tsc -w"
   },
   "keywords": [],
