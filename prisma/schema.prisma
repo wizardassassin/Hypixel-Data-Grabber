@@ -3,68 +3,33 @@ generator client {
 }
 
 datasource db {
-  provider = "cockroachdb"
+  provider = "postgresql"
   url      = env("DATABASE_URL")
 }
 
-model BazaarTimeLog {
-  lastUpdated     BigInt   @id
-  totalSellVolume Int
-  totalBuyVolume  Int
-  totalSellOrders Int
-  totalBuyOrders  Int
-  // data            Json
-  itemIds         String[]
-  sellPrice       Float[]
-  buyPrice        Float[]
-  sellPriceAvg    Float[]
-  buyPriceAvg     Float[]
-  sellMovingWeek  Int[]
-  buyMovingWeek   Int[]
-  sellVolume      Int[]
-  buyVolume       Int[]
-  sellOrders      Int[]
-  buyOrders       Int[]
+model BazaarItemLog {
+  logId    String           @id @default(uuid())
+  logRange AggregationRange
+
+  productId      String
+  lastUpdated    DateTime
+  sellPriceSum   Float
+  buyPriceSum    Float
+  sellPrice      Float
+  buyPrice       Float
+  sellMovingWeek Float
+  buyMovingWeek  Float
+  sellVolume     Float
+  buyVolume      Float
+  sellOrders     Float
+  buyOrders      Float
+
+  @@unique([productId, lastUpdated, logRange])
 }
 
-model AuctionsTimeLog {
-  lastUpdated      BigInt   @id
-  totalAuctions    Int
-  totalBinAuctions Int
-  totalPages       Int
-  // data             Json
-  itemIds          String[]
-  prices           Float[]
-  amounts          Int[]
-}
-
-model EndedAuctionsTimeLog {
-  lastUpdated   BigInt    @id
-  totalAuctions Int
-  // data          Json
-  itemIds       String[]
-  prices        Float[]
-  isBin         Boolean[]
-}
-
-model PlayersTimeLog {
-  lastUpdated BigInt @id
-  playerCount Int
-  data        Json
-}
-
-model BoostersTimeLog {
-  lastUpdated    BigInt  @id
-  isDecrementing Boolean
-  data           Json
-}
-
-model LeaderboardsTimeLog {
-  lastUpdated BigInt @id
-  data        Json
-}
-
-model WatchdogTimeLog {
-  lastUpdated BigInt @id
-  data        Json
+enum AggregationRange {
+  oneMinute
+  fiveMinutes
+  oneHour
+  oneDay
 }

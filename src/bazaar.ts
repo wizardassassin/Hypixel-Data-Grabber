@@ -1,5 +1,5 @@
-export interface BItemObj {
-    productID: string;
+export interface BazaarObj {
+    productId: string;
     sellPriceSum: number;
     buyPriceSum: number;
     sellPrice: number;
@@ -19,11 +19,11 @@ export async function getBazaar() {
     let totalBuyVolume = 0;
     let totalSellOrders = 0;
     let totalBuyOrders = 0;
-    const bazaarArr: BItemObj[] = [];
+    const bazaarArr: BazaarObj[] = [];
     for (const key in json.products) {
         const quick_status = json.products[key].quick_status;
         bazaarArr.push({
-            productID: key,
+            productId: key,
             sellPriceSum: json.products[key].sell_summary[0]?.pricePerUnit ?? 0,
             buyPriceSum: json.products[key].buy_summary[0]?.pricePerUnit ?? 0,
             sellPrice: quick_status.sellPrice,
