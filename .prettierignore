@@ -1,5 +1,7 @@
 # Ignore config files
 package.json
 package-lock.json
-ecosystem.config.js
+ecosystem.config.cjs
 .prettierrc
+.prettierignore
+.eslintrc.cjs

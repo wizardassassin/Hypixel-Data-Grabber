@@ -146,6 +146,7 @@ async function getNBTData(itemBytes: string) {
             return `${id}`;
         }
     } catch (error) {
+        console.error(error);
         console.error(attr1.value);
         return `${id}`;
     }

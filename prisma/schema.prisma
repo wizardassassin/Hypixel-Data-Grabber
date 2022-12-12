@@ -13,8 +13,8 @@ model BazaarItemLog {
 
   productId      String
   lastUpdated    DateTime
-  sellPriceSum   Float
-  buyPriceSum    Float
+  sellPriceTop   Float
+  buyPriceTop    Float
   sellPrice      Float
   buyPrice       Float
   sellMovingWeek Float
@@ -32,4 +32,5 @@ enum AggregationRange {
   fiveMinutes
   oneHour
   oneDay
+  oneWeek
 }

@@ -23,35 +23,36 @@ export function importBazaarCollectors() {
     );
     customCollectors["Bazaar Aggregator Daily"] = aggregatorDaily;
 
-    const cleaner = createClockTimeoutWrapper(
-        async () => await cleanBazaar(),
-        DateWrapper.hourToMs,
-        "Bazaar Cleaner",
-        false,
-        DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 30
-    );
-    customCollectors["Bazaar Cleaner"] = cleaner;
-
     const collector = createClockTimeoutWrapper(
         async () => await fetchBazaar(),
         DateWrapper.minToMs,
         "Bazaar Collector",
         false,
-        DateWrapper.floorUTCMinutes().valueOf() + DateWrapper.secToMs * 45
+        DateWrapper.floorUTCMinutes().valueOf() + DateWrapper.secToMs * 30
     );
     customCollectors["Bazaar Collector"] = collector;
+
+    const cleaner = createClockTimeoutWrapper(
+        async () => await cleanBazaar(),
+        DateWrapper.hourToMs,
+        "Bazaar Cleaner",
+        false,
+        DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 45
+    );
+    customCollectors["Bazaar Cleaner"] = cleaner;
 }
 
 async function fetchBazaar() {
     const data = await getBazaar();
+    const lastUpdated = DateWrapper.floorUTCMinutes(new Date(data.lastUpdated));
 
     const { count } = await prisma.bazaarItemLog.createMany({
         data: data.bazaarArr.map((x) => ({
             logRange: "oneMinute",
             productId: x.productId,
-            lastUpdated: new Date(data.lastUpdated),
-            sellPriceSum: x.sellPriceSum,
-            buyPriceSum: x.buyPriceSum,
+            lastUpdated: lastUpdated,
+            sellPriceTop: x.sellPriceSum,
+            buyPriceTop: x.buyPriceSum,
             sellPrice: x.sellPrice,
             buyPrice: x.buyPrice,
             sellMovingWeek: x.sellMovingWeek,
@@ -67,7 +68,7 @@ async function fetchBazaar() {
 
 async function cleanBazaar() {
     const floorDate = DateWrapper.floorUTCHours();
-    floorDate.setUTCHours(floorDate.getUTCHours() - 24 * 7);
+    floorDate.setUTCHours(floorDate.getUTCHours() - 24 * 2);
     const { count } = await prisma.bazaarItemLog.deleteMany({
         where: {
             lastUpdated: {
@@ -90,8 +91,8 @@ async function aggregateBazaarHourly() {
             logRange: "oneMinute",
         },
         _avg: {
-            sellPriceSum: true,
-            buyPriceSum: true,
+            sellPriceTop: true,
+            buyPriceTop: true,
             sellPrice: true,
             buyPrice: true,
             sellMovingWeek: true,
@@ -114,8 +115,8 @@ async function aggregateBazaarHourly() {
             productId: x.productId,
             logRange: "oneHour",
             lastUpdated: x._min.lastUpdated,
-            sellPriceSum: x._avg.sellPriceSum,
-            buyPriceSum: x._avg.buyPriceSum,
+            sellPriceTop: x._avg.sellPriceTop,
+            buyPriceTop: x._avg.buyPriceTop,
             sellPrice: x._avg.sellPrice,
             buyPrice: x._avg.buyPrice,
             sellMovingWeek: x._avg.sellMovingWeek,
@@ -141,8 +142,8 @@ async function aggregateBazaarDaily() {
             logRange: "oneHour",
         },
         _avg: {
-            sellPriceSum: true,
-            buyPriceSum: true,
+            sellPriceTop: true,
+            buyPriceTop: true,
             sellPrice: true,
             buyPrice: true,
             sellMovingWeek: true,
@@ -165,8 +166,8 @@ async function aggregateBazaarDaily() {
             productId: x.productId,
             logRange: "oneDay",
             lastUpdated: x._min.lastUpdated,
-            sellPriceSum: x._avg.sellPriceSum,
-            buyPriceSum: x._avg.buyPriceSum,
+            sellPriceTop: x._avg.sellPriceTop,
+            buyPriceTop: x._avg.buyPriceTop,
             sellPrice: x._avg.sellPrice,
             buyPrice: x._avg.buyPrice,
             sellMovingWeek: x._avg.sellMovingWeek,
