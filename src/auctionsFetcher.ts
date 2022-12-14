@@ -67,6 +67,7 @@ async function cleanAuctions() {
             lastUpdated: {
                 lt: floorDate,
             },
+            logRange: "fiveMinutes",
         },
     });
     console.log("Deleted", count, "Auctions Items");

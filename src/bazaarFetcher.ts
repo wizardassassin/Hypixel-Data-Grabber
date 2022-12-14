@@ -74,6 +74,7 @@ async function cleanBazaar() {
             lastUpdated: {
                 lt: floorDate,
             },
+            logRange: "oneMinute",
         },
     });
     console.log("Deleted", count, "Bazaar Items");

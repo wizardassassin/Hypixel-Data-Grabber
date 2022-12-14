@@ -99,21 +99,21 @@ async function fetchAuctionData() {
             const lastUpdated = json.lastUpdated as number;
             if (i + 1 === initA.totalPages - 1) {
                 if (lastUpdated !== initA.lastUpdated) {
-                    console.log(
+                    console.error(
                         "Auctions lastUpdated Missmatch:",
                         initA.lastUpdated,
                         lastUpdated
                     );
                 }
                 if (json.totalPages !== initA.totalPages) {
-                    console.log(
+                    console.error(
                         "Auctions totalPages Missmatch:",
                         initA.totalPages,
                         json.totalPages
                     );
                 }
                 if (json.totalAuctions !== initA.totalAuctions) {
-                    console.log(
+                    console.error(
                         "Auctions totalAuctions Missmatch:",
                         initA.totalAuctions,
                         json.totalAuctions
