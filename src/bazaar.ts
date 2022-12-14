@@ -1,3 +1,5 @@
+import { FetchWrapper } from "./fetchWrapper.js";
+
 export interface BazaarObj {
     productId: string;
     sellPriceSum: number;
@@ -13,8 +15,9 @@ export interface BazaarObj {
 }
 
 export async function getBazaar() {
-    const res = await fetch("https://api.hypixel.net/skyblock/bazaar");
-    const json = await res.json();
+    const json = await FetchWrapper.fetch(
+        `https://api.hypixel.net/skyblock/bazaar`
+    );
     let totalSellVolume = 0;
     let totalBuyVolume = 0;
     let totalSellOrders = 0;

@@ -1,3 +1,5 @@
+import { FetchWrapper } from "./fetchWrapper.js";
+
 export interface GamesObj {
     [key: string]: {
         players: number;
@@ -40,10 +42,9 @@ export interface WatchdogObj {
 }
 
 export async function getPlayers() {
-    const res = await fetch(
+    const json = await FetchWrapper.fetch(
         `https://api.hypixel.net/counts?key=${process.env.HYPIXEL_API_KEY}`
     );
-    const json = await res.json();
 
     return {
         lastUpdated: Date.now(),
@@ -53,10 +54,9 @@ export async function getPlayers() {
 }
 
 export async function getBoosters() {
-    const res = await fetch(
+    const json = await FetchWrapper.fetch(
         `https://api.hypixel.net/boosters?key=${process.env.HYPIXEL_API_KEY}`
     );
-    const json = await res.json();
     // _id looks like mongoDB xd
 
     return {
@@ -67,10 +67,9 @@ export async function getBoosters() {
 }
 
 export async function getLeaderboards() {
-    const res = await fetch(
+    const json = await FetchWrapper.fetch(
         `https://api.hypixel.net/leaderboards?key=${process.env.HYPIXEL_API_KEY}`
     );
-    const json = await res.json();
 
     return {
         lastUpdated: Date.now(),
@@ -79,10 +78,9 @@ export async function getLeaderboards() {
 }
 
 export async function getWatchdog() {
-    const res = await fetch(
+    const json = await FetchWrapper.fetch(
         `https://api.hypixel.net/punishmentstats?key=${process.env.HYPIXEL_API_KEY}`
     );
-    const json = await res.json();
 
     // errors when I assign it the type WatchdogObj
     const obj = {

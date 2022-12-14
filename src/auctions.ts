@@ -1,5 +1,8 @@
 /* eslint-disable @typescript-eslint/no-explicit-any */
 import * as nbt from "prismarine-nbt"; // No default export?
+import { DateWrapper } from "./dateWrapper.js";
+import { FetchWrapper } from "./fetchWrapper.js";
+import { MathWrapper } from "./mathWrapper.js";
 
 export interface EndedAuctionsObj {
     itemId: string;
@@ -10,19 +13,21 @@ export interface EndedAuctionsObj {
 export interface AuctionsObj {
     itemId: string;
     lowestBin: number;
+    lowestBinAvg: number;
     count: number;
 }
 
 export interface IntermediateAuctionsObj {
     [key: string]: {
-        bid: number;
+        bids: number[];
         count: number;
     };
 }
 
 export async function getEndedAuctions() {
-    const res = await fetch("https://api.hypixel.net/skyblock/auctions_ended");
-    const json = await res.json();
+    const json = await FetchWrapper.fetch(
+        `https://api.hypixel.net/skyblock/auctions_ended`
+    );
     const auctions = json.auctions as any[];
     const parsedAuctions: EndedAuctionsObj[] = await Promise.all(
         auctions.map(async (x) => ({
@@ -32,7 +37,7 @@ export async function getEndedAuctions() {
         }))
     );
     return {
-        lastUpdated: json.lastUpdated as number,
+        lastUpdated: DateWrapper.floorUTCMinutes(json.lastUpdated),
         totalItems: parsedAuctions.length,
         endedAuctions: parsedAuctions,
     };
@@ -41,17 +46,21 @@ export async function getEndedAuctions() {
 export async function getAuctions() {
     const data = await fetchAuctionData();
 
-    const auctions = Object.keys(data.data).map(
-        (key) =>
-            ({
-                itemId: key,
-                lowestBin: data.data[key].bid,
-                count: data.data[key].count,
-            } as AuctionsObj)
-    );
+    const auctions = Object.keys(data.data).map((key) => {
+        const bids = data.data[key].bids;
+        bids.sort((a, b) => a - b);
+        const count = data.data[key].count;
+        const valsToAvg = Math.max(Math.round(count * 0.15), 1);
+        return {
+            itemId: key,
+            lowestBin: bids[0],
+            lowestBinAvg: MathWrapper.average(bids.slice(0, valsToAvg)),
+            count: count,
+        } as AuctionsObj;
+    });
 
     return {
-        lastUpdated: data.lastUpdated,
+        lastUpdated: DateWrapper.floorUTCMinutes(new Date(data.lastUpdated)),
         totalPages: data.totalPages,
         totalItems: data.totalItems,
         totalBinItems: auctions.reduce((a, b) => a + b.count, 0),
@@ -60,14 +69,14 @@ export async function getAuctions() {
 }
 
 async function fetchAuctionData() {
-    const initA = await fetch(`https://api.hypixel.net/skyblock/auctions`)
-        .then((res) => res.json())
-        .then((json) => ({
-            lastUpdated: json.lastUpdated as number,
-            totalPages: json.totalPages as number,
-            totalAuctions: json.totalAuctions as number,
-            auctions: json.auctions as any[],
-        }));
+    const initA = await FetchWrapper.fetch(
+        `https://api.hypixel.net/skyblock/auctions`
+    ).then((json) => ({
+        lastUpdated: json.lastUpdated as number,
+        totalPages: json.totalPages as number,
+        totalAuctions: json.totalAuctions as number,
+        auctions: json.auctions as any[],
+    }));
     const data: IntermediateAuctionsObj = {};
     const addData = (auctions: any[]) =>
         Promise.all(
@@ -75,17 +84,17 @@ async function fetchAuctionData() {
                 .filter((x) => x.bin)
                 .map(async (x) => {
                     const id = await getNBTData(x.item_bytes);
-                    data[id] ??= { bid: Infinity, count: 0 };
-                    data[id].bid = Math.min(data[id].bid, x.starting_bid);
+                    data[id] ??= { bids: [], count: 0 };
+                    data[id].bids.push(x.starting_bid);
                     data[id].count++;
                 })
         );
     const totalItems = initA.totalAuctions;
     const wait = Promise.all(
         Array.from({ length: initA.totalPages - 1 }, async (_, i) => {
-            const json = await fetch(
+            const json = await FetchWrapper.fetch(
                 `https://api.hypixel.net/skyblock/auctions?page=${i + 1}`
-            ).then((res) => res.json());
+            );
             const auctions = json.auctions as any[];
             const lastUpdated = json.lastUpdated as number;
             if (i + 1 === initA.totalPages - 1) {

@@ -63,7 +63,7 @@ async function fetchBazaar() {
             buyOrders: x.buyOrders,
         })),
     });
-    console.log("Added", count, "Items");
+    console.log("Added", count, "Bazaar Items");
 }
 
 async function cleanBazaar() {
@@ -76,7 +76,7 @@ async function cleanBazaar() {
             },
         },
     });
-    console.log("Deleted", count, "Items");
+    console.log("Deleted", count, "Bazaar Items");
 }
 
 async function aggregateBazaarHourly() {
@@ -107,7 +107,7 @@ async function aggregateBazaarHourly() {
         },
     });
     if (data.length === 0) {
-        console.error("Can't find anything to aggregate.");
+        console.error("Can't find anything Bazaar items to aggregate.");
         return;
     }
     const { count } = await prisma.bazaarItemLog.createMany({
@@ -127,7 +127,7 @@ async function aggregateBazaarHourly() {
             buyOrders: x._avg.buyOrders,
         })),
     });
-    console.log("Aggregated", count, "Items");
+    console.log("Aggregated", count, "Bazaar Items");
 }
 
 async function aggregateBazaarDaily() {
@@ -178,5 +178,5 @@ async function aggregateBazaarDaily() {
             buyOrders: x._avg.buyOrders,
         })),
     });
-    console.log("Aggregated", count, "Items");
+    console.log("Aggregated", count, "Bazaar Items");
 }

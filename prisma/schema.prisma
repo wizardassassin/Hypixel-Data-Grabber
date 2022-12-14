@@ -27,6 +27,19 @@ model BazaarItemLog {
   @@unique([productId, lastUpdated, logRange])
 }
 
+model BinAuctionsItemLog {
+  logId    String           @id @default(uuid())
+  logRange AggregationRange
+
+  itemId       String
+  lastUpdated  DateTime
+  lowestBin    Float
+  lowestBinAvg Float
+  count        Float
+
+  @@unique([itemId, lastUpdated, logRange])
+}
+
 enum AggregationRange {
   oneMinute
   fiveMinutes
