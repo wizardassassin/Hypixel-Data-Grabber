@@ -90,41 +90,39 @@ async function fetchAuctionData() {
                 })
         );
     const totalItems = initA.totalAuctions;
-    const wait = Promise.all(
-        Array.from({ length: initA.totalPages - 1 }, async (_, i) => {
-            const json = await FetchWrapper.fetch(
-                `https://api.hypixel.net/skyblock/auctions?page=${i + 1}`
-            );
-            const auctions = json.auctions as any[];
-            const lastUpdated = json.lastUpdated as number;
-            if (i + 1 === initA.totalPages - 1) {
-                if (lastUpdated !== initA.lastUpdated) {
-                    console.error(
-                        "Auctions lastUpdated Missmatch:",
-                        initA.lastUpdated,
-                        lastUpdated
-                    );
-                }
-                if (json.totalPages !== initA.totalPages) {
-                    console.error(
-                        "Auctions totalPages Missmatch:",
-                        initA.totalPages,
-                        json.totalPages
-                    );
-                }
-                if (json.totalAuctions !== initA.totalAuctions) {
-                    console.error(
-                        "Auctions totalAuctions Missmatch:",
-                        initA.totalAuctions,
-                        json.totalAuctions
-                    );
-                }
-            }
-            await addData(auctions);
-        })
-    );
     await addData(initA.auctions);
-    await wait;
+    for (let i = 0; i < initA.totalPages - 1; i++) {
+        const json = await FetchWrapper.fetch(
+            `https://api.hypixel.net/skyblock/auctions?page=${i + 1}`
+        );
+        const auctions = json.auctions as any[];
+        const lastUpdated = json.lastUpdated as number;
+        if (i + 1 === initA.totalPages - 1) {
+            if (lastUpdated !== initA.lastUpdated) {
+                console.error(
+                    "Auctions lastUpdated Missmatch:",
+                    initA.lastUpdated,
+                    lastUpdated
+                );
+            }
+            if (json.totalPages !== initA.totalPages) {
+                console.error(
+                    "Auctions totalPages Missmatch:",
+                    initA.totalPages,
+                    json.totalPages
+                );
+            }
+            if (json.totalAuctions !== initA.totalAuctions) {
+                console.error(
+                    "Auctions totalAuctions Missmatch:",
+                    initA.totalAuctions,
+                    json.totalAuctions
+                );
+            }
+        }
+        await addData(auctions);
+    }
+
     return {
         lastUpdated: initA.lastUpdated,
         totalPages: initA.totalPages,
