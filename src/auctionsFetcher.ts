@@ -11,6 +11,7 @@ export function importAuctionsCollectors() {
         name: "Auctions Collector",
         startTime:
             DateWrapper.floorUTCFiveMinutes().valueOf() +
+            DateWrapper.minToMs * 0 +
             DateWrapper.secToMs * 0,
     });
     customCollectors["Auctions Collector"] = collector;
@@ -21,7 +22,9 @@ export function importAuctionsCollectors() {
         name: "Auctions Aggregator Hourly",
         loggingLevel: 2,
         startTime:
-            DateWrapper.floorUTCHours().valueOf() + DateWrapper.secToMs * 15,
+            DateWrapper.floorUTCHours().valueOf() +
+            DateWrapper.minToMs * 1 +
+            DateWrapper.secToMs * 15,
     });
     customCollectors["Auctions Aggregator Hourly"] = aggregatorHourly;
 
@@ -31,7 +34,9 @@ export function importAuctionsCollectors() {
         name: "Auctions Cleaner",
         loggingLevel: 2,
         startTime:
-            DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 30,
+            DateWrapper.floorUTCDays().valueOf() +
+            DateWrapper.minToMs * 0 +
+            DateWrapper.secToMs * 30,
     });
     customCollectors["Auctions Cleaner"] = cleaner;
 
@@ -41,14 +46,16 @@ export function importAuctionsCollectors() {
         name: "Auctions Aggregator Daily",
         loggingLevel: 2,
         startTime:
-            DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 45,
+            DateWrapper.floorUTCDays().valueOf() +
+            DateWrapper.minToMs * 2 +
+            DateWrapper.secToMs * 45,
     });
     customCollectors["Auctions Aggregator Daily"] = aggregatorDaily;
 }
 
 export async function fetchAuctions() {
+    const lastUpdated = DateWrapper.floorUTCMinutes(new Date());
     const data = await getAuctions();
-    const lastUpdated = DateWrapper.floorUTCMinutes(new Date(data.lastUpdated));
 
     const { count } = await prisma.binAuctionsItemLog.createMany({
         data: data.auctions.map((x) => ({
@@ -93,9 +100,6 @@ async function aggregateAuctionsHourly() {
             lowestBinAvg: true,
             count: true,
         },
-        _min: {
-            lastUpdated: true,
-        },
     });
     if (data.length === 0) {
         console.error("Can't find any Auctions items to aggregate.");
@@ -105,7 +109,7 @@ async function aggregateAuctionsHourly() {
         data: data.map((x) => ({
             itemId: x.itemId,
             logRange: "oneHour",
-            lastUpdated: x._min.lastUpdated,
+            lastUpdated: floorDate,
             lowestBin: x._avg.lowestBin,
             lowestBinAvg: x._avg.lowestBinAvg,
             count: x._avg.count,
@@ -130,9 +134,6 @@ async function aggregateAuctionsDaily() {
             lowestBinAvg: true,
             count: true,
         },
-        _min: {
-            lastUpdated: true,
-        },
     });
     if (data.length === 0) {
         console.error("Can't find any Auctions items to aggregate.");
@@ -142,7 +143,7 @@ async function aggregateAuctionsDaily() {
         data: data.map((x) => ({
             itemId: x.itemId,
             logRange: "oneDay",
-            lastUpdated: x._min.lastUpdated,
+            lastUpdated: floorDate,
             lowestBin: x._avg.lowestBin,
             lowestBinAvg: x._avg.lowestBinAvg,
             count: x._avg.count,
