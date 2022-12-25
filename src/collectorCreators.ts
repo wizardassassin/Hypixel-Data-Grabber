@@ -10,12 +10,19 @@ export interface CollectorObj {
     stop(): Promise<unknown>;
 }
 
-export const createTimeout = (
-    collectorWrapper: { (): Promise<void> | boolean },
-    getInterval: { (): number },
-    name: string,
-    runOnReady = false
-): CollectorObj => ({
+export const createTimeout = ({
+    collectorWrapper,
+    getInterval,
+    name,
+    runOnReady = false,
+    loggingLevel = 1,
+}: {
+    collectorWrapper: { (): Promise<void> };
+    getInterval: { (): number };
+    name: string;
+    runOnReady?: boolean;
+    loggingLevel?: number;
+}): CollectorObj => ({
     isRunning: null,
     nextRun: null,
     _timeout: null,
@@ -69,25 +76,48 @@ export const createTimeout = (
     },
 });
 
-export const createTimeoutWrapper = (
-    collectorWrapper: { (): Promise<void> | boolean },
-    interval: number,
-    name: string,
-    runOnReady = false
-) => createTimeout(collectorWrapper, () => interval, name, runOnReady);
-
-export const createClockTimeoutWrapper = (
-    collectorWrapper: { (): Promise<void> | boolean },
-    interval: number,
-    name: string,
+export const createTimeoutWrapper = ({
+    collectorWrapper,
+    interval,
+    name,
     runOnReady = false,
-    startTime: number = Date.now()
-) =>
-    createTimeout(
+    loggingLevel = 1,
+}: {
+    collectorWrapper: { (): Promise<void> };
+    interval: number;
+    name: string;
+    runOnReady?: boolean;
+    loggingLevel?: number;
+}) =>
+    createTimeout({
+        collectorWrapper,
+        getInterval: () => interval,
+        name,
+        runOnReady,
+        loggingLevel,
+    });
+
+export const createClockTimeoutWrapper = ({
+    collectorWrapper,
+    interval,
+    name,
+    runOnReady = false,
+    loggingLevel = 1,
+    startTime = Date.now(),
+}: {
+    collectorWrapper: { (): Promise<void> };
+    interval: number;
+    name: string;
+    runOnReady?: boolean;
+    loggingLevel?: number;
+    startTime?: number;
+}) =>
+    createTimeout({
         collectorWrapper,
         // Seems to work with start times with at a max of ${interval} time in the future
         // Will still wait for ${interval} if Date.now() === startTime
-        () => interval - ((Date.now() - startTime) % interval),
+        getInterval: () => interval - ((Date.now() - startTime) % interval),
         name,
-        runOnReady
-    );
+        runOnReady,
+        loggingLevel,
+    });

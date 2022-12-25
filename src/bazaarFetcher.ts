@@ -5,41 +5,41 @@ import prisma from "./database.js";
 import { DateWrapper } from "./dateWrapper.js";
 
 export function importBazaarCollectors() {
-    const aggregatorHourly = createClockTimeoutWrapper(
-        async () => await aggregateBazaarHourly(),
-        DateWrapper.hourToMs,
-        "Bazaar Aggregator Hourly",
-        false,
-        DateWrapper.floorUTCHours().valueOf() + DateWrapper.secToMs * 0
-    );
-    customCollectors["Bazaar Aggregator Hourly"] = aggregatorHourly;
-
-    const aggregatorDaily = createClockTimeoutWrapper(
-        async () => await aggregateBazaarDaily(),
-        DateWrapper.dayToMs,
-        "Bazaar Aggregator Daily",
-        false,
-        DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 15
-    );
-    customCollectors["Bazaar Aggregator Daily"] = aggregatorDaily;
-
-    const collector = createClockTimeoutWrapper(
-        async () => await fetchBazaar(),
-        DateWrapper.minToMs,
-        "Bazaar Collector",
-        false,
-        DateWrapper.floorUTCMinutes().valueOf() + DateWrapper.secToMs * 30
-    );
+    const collector = createClockTimeoutWrapper({
+        collectorWrapper: fetchBazaar,
+        interval: DateWrapper.minToMs,
+        name: "Bazaar Collector",
+        startTime:
+            DateWrapper.floorUTCMinutes().valueOf() + DateWrapper.secToMs * 0,
+    });
     customCollectors["Bazaar Collector"] = collector;
 
-    const cleaner = createClockTimeoutWrapper(
-        async () => await cleanBazaar(),
-        DateWrapper.hourToMs,
-        "Bazaar Cleaner",
-        false,
-        DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 45
-    );
+    const aggregatorHourly = createClockTimeoutWrapper({
+        collectorWrapper: aggregateBazaarHourly,
+        interval: DateWrapper.hourToMs,
+        name: "Bazaar Aggregator Hourly",
+        startTime:
+            DateWrapper.floorUTCHours().valueOf() + DateWrapper.secToMs * 15,
+    });
+    customCollectors["Bazaar Aggregator Hourly"] = aggregatorHourly;
+
+    const cleaner = createClockTimeoutWrapper({
+        collectorWrapper: cleanBazaar,
+        interval: DateWrapper.hourToMs,
+        name: "Bazaar Cleaner",
+        startTime:
+            DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 30,
+    });
     customCollectors["Bazaar Cleaner"] = cleaner;
+
+    const aggregatorDaily = createClockTimeoutWrapper({
+        collectorWrapper: aggregateBazaarDaily,
+        interval: DateWrapper.dayToMs,
+        name: "Bazaar Aggregator Daily",
+        startTime:
+            DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 45,
+    });
+    customCollectors["Bazaar Aggregator Daily"] = aggregatorDaily;
 }
 
 async function fetchBazaar() {

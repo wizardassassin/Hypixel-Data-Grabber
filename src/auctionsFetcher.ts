@@ -5,41 +5,42 @@ import prisma from "./database.js";
 import { DateWrapper } from "./dateWrapper.js";
 
 export function importAuctionsCollectors() {
-    const aggregatorHourly = createClockTimeoutWrapper(
-        async () => await aggregateAuctionsHourly(),
-        DateWrapper.hourToMs,
-        "Auctions Aggregator Hourly",
-        false,
-        DateWrapper.floorUTCHours().valueOf() + DateWrapper.secToMs * 0
-    );
-    customCollectors["Auctions Aggregator Hourly"] = aggregatorHourly;
-
-    const aggregatorDaily = createClockTimeoutWrapper(
-        async () => await aggregateAuctionsDaily(),
-        DateWrapper.dayToMs,
-        "Auctions Aggregator Daily",
-        false,
-        DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 15
-    );
-    customCollectors["Auctions Aggregator Daily"] = aggregatorDaily;
-
-    const collector = createClockTimeoutWrapper(
-        async () => await fetchAuctions(),
-        DateWrapper.minToMs * 5,
-        "Auctions Collector",
-        false,
-        DateWrapper.floorUTCFiveMinutes().valueOf() + DateWrapper.secToMs * 30
-    );
+    const collector = createClockTimeoutWrapper({
+        collectorWrapper: fetchAuctions,
+        interval: DateWrapper.minToMs * 5,
+        name: "Auctions Collector",
+        startTime:
+            DateWrapper.floorUTCFiveMinutes().valueOf() +
+            DateWrapper.secToMs * 0,
+    });
     customCollectors["Auctions Collector"] = collector;
 
-    const cleaner = createClockTimeoutWrapper(
-        async () => await cleanAuctions(),
-        DateWrapper.hourToMs,
-        "Auctions Cleaner",
-        false,
-        DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 45
-    );
+    const aggregatorHourly = createClockTimeoutWrapper({
+        collectorWrapper: aggregateAuctionsHourly,
+        interval: DateWrapper.hourToMs,
+        name: "Auctions Aggregator Hourly",
+        startTime:
+            DateWrapper.floorUTCHours().valueOf() + DateWrapper.secToMs * 15,
+    });
+    customCollectors["Auctions Aggregator Hourly"] = aggregatorHourly;
+
+    const cleaner = createClockTimeoutWrapper({
+        collectorWrapper: cleanAuctions,
+        interval: DateWrapper.hourToMs,
+        name: "Auctions Cleaner",
+        startTime:
+            DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 30,
+    });
     customCollectors["Auctions Cleaner"] = cleaner;
+
+    const aggregatorDaily = createClockTimeoutWrapper({
+        collectorWrapper: aggregateAuctionsDaily,
+        interval: DateWrapper.dayToMs,
+        name: "Auctions Aggregator Daily",
+        startTime:
+            DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 45,
+    });
+    customCollectors["Auctions Aggregator Daily"] = aggregatorDaily;
 }
 
 export async function fetchAuctions() {
