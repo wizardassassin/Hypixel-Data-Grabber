@@ -53,6 +53,7 @@ export const createTimeout = ({
             const waitTime = getInterval();
             this.nextRun = new Date(Date.now() + waitTime);
             this._timeout = setTimeout(workerCallback, waitTime);
+            this.log(() => console.log(`Next ${name}:`, this.nextRun), 3);
         };
         this._promise = new Promise((res, rej) => {
             this._res = res;
@@ -65,7 +66,7 @@ export const createTimeout = ({
         const waitTime = getInterval();
         this.nextRun = new Date(Date.now() + waitTime);
         this._timeout = setTimeout(workerCallback, waitTime);
-        this.nextRun;
+        this.log(() => console.log(`Next ${name}:`, this.nextRun), 3);
     },
     async stop() {
         this._stopRunning = true;
