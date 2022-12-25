@@ -19,6 +19,7 @@ export function importAuctionsCollectors() {
         collectorWrapper: aggregateAuctionsHourly,
         interval: DateWrapper.hourToMs,
         name: "Auctions Aggregator Hourly",
+        loggingLevel: 2,
         startTime:
             DateWrapper.floorUTCHours().valueOf() + DateWrapper.secToMs * 15,
     });
@@ -28,6 +29,7 @@ export function importAuctionsCollectors() {
         collectorWrapper: cleanAuctions,
         interval: DateWrapper.hourToMs,
         name: "Auctions Cleaner",
+        loggingLevel: 2,
         startTime:
             DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 30,
     });
@@ -37,6 +39,7 @@ export function importAuctionsCollectors() {
         collectorWrapper: aggregateAuctionsDaily,
         interval: DateWrapper.dayToMs,
         name: "Auctions Aggregator Daily",
+        loggingLevel: 2,
         startTime:
             DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 45,
     });
@@ -57,7 +60,7 @@ export async function fetchAuctions() {
             count: x.count,
         })),
     });
-    console.log("Added", count, "Auctions Items");
+    this.log?.(() => console.log("Added", count, "Auctions Items"), 2);
 }
 
 async function cleanAuctions() {
@@ -71,7 +74,7 @@ async function cleanAuctions() {
             logRange: "fiveMinutes",
         },
     });
-    console.log("Deleted", count, "Auctions Items");
+    this.log?.(() => console.log("Deleted", count, "Auctions Items"), 2);
 }
 
 async function aggregateAuctionsHourly() {
@@ -108,7 +111,7 @@ async function aggregateAuctionsHourly() {
             count: x._avg.count,
         })),
     });
-    console.log("Aggregated", count, "Auctions Items");
+    this.log?.(() => console.log("Aggregated", count, "Auctions Items"), 2);
 }
 
 async function aggregateAuctionsDaily() {
@@ -145,5 +148,5 @@ async function aggregateAuctionsDaily() {
             count: x._avg.count,
         })),
     });
-    console.log("Aggregated", count, "Auctions Items");
+    this.log?.(() => console.log("Aggregated", count, "Auctions Items"), 2);
 }

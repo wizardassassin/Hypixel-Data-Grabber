@@ -18,6 +18,7 @@ export function importBazaarCollectors() {
         collectorWrapper: aggregateBazaarHourly,
         interval: DateWrapper.hourToMs,
         name: "Bazaar Aggregator Hourly",
+        loggingLevel: 2,
         startTime:
             DateWrapper.floorUTCHours().valueOf() + DateWrapper.secToMs * 15,
     });
@@ -27,6 +28,7 @@ export function importBazaarCollectors() {
         collectorWrapper: cleanBazaar,
         interval: DateWrapper.hourToMs,
         name: "Bazaar Cleaner",
+        loggingLevel: 2,
         startTime:
             DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 30,
     });
@@ -36,6 +38,7 @@ export function importBazaarCollectors() {
         collectorWrapper: aggregateBazaarDaily,
         interval: DateWrapper.dayToMs,
         name: "Bazaar Aggregator Daily",
+        loggingLevel: 2,
         startTime:
             DateWrapper.floorUTCDays().valueOf() + DateWrapper.secToMs * 45,
     });
@@ -63,7 +66,7 @@ async function fetchBazaar() {
             buyOrders: x.buyOrders,
         })),
     });
-    console.log("Added", count, "Bazaar Items");
+    this.log?.(() => console.log("Added", count, "Bazaar Items"), 2);
 }
 
 async function cleanBazaar() {
@@ -77,7 +80,7 @@ async function cleanBazaar() {
             logRange: "oneMinute",
         },
     });
-    console.log("Deleted", count, "Bazaar Items");
+    this.log?.(() => console.log("Deleted", count, "Bazaar Items"), 2);
 }
 
 async function aggregateBazaarHourly() {
@@ -128,7 +131,7 @@ async function aggregateBazaarHourly() {
             buyOrders: x._avg.buyOrders,
         })),
     });
-    console.log("Aggregated", count, "Bazaar Items");
+    this.log?.(() => console.log("Aggregated", count, "Bazaar Items"), 2);
 }
 
 async function aggregateBazaarDaily() {
@@ -179,5 +182,5 @@ async function aggregateBazaarDaily() {
             buyOrders: x._avg.buyOrders,
         })),
     });
-    console.log("Aggregated", count, "Bazaar Items");
+    this.log?.(() => console.log("Aggregated", count, "Bazaar Items"), 2);
 }

@@ -4,10 +4,12 @@ export interface CollectorObj {
     _timeout: NodeJS.Timeout;
     _stopRunning: boolean;
     _promise: Promise<unknown>;
+    _collectorWrapper: { (): Promise<void> };
     _res: (value: unknown) => void;
     _rej: (value: unknown) => void;
     start(): void;
     stop(): Promise<unknown>;
+    log(logWrapper: () => void, logLevel: number): void;
 }
 
 export const createTimeout = ({
@@ -30,20 +32,21 @@ export const createTimeout = ({
     _promise: null,
     _res: null,
     _rej: null,
+    _collectorWrapper: collectorWrapper, // this
     start() {
         const workerCallback = async () => {
-            console.log("Started", name);
-            console.time(name);
+            this.log(() => console.log("Started", name), 3);
+            this.log(() => console.time(name), 3);
             this.isRunning = true;
             try {
-                await collectorWrapper();
+                await this._collectorWrapper();
             } catch (error) {
                 console.error(error);
             }
             this.isRunning = false;
-            console.timeEnd(name);
+            this.log(() => console.timeEnd(name), 3);
             if (this._stopRunning) {
-                console.log("Stopped", name);
+                this.log(() => console.log("Stopped", name), 1);
                 this._res("Done");
                 return;
             }
@@ -68,11 +71,16 @@ export const createTimeout = ({
         this._stopRunning = true;
         clearInterval(this._timeout);
         if (!this.isRunning) {
-            console.log("Stopped", name);
+            this.log(() => console.log("Stopped", name), 1);
             return;
         }
-        console.log("Waiting for", name, "to finish...");
+        this.log(() => console.log("Waiting for", name, "to finish..."), 1);
         await this._promise;
+    },
+    log(logWrapper, logLevel) {
+        if (logLevel <= loggingLevel) {
+            logWrapper();
+        }
     },
 });
 
