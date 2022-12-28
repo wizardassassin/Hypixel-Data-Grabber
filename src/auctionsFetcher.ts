@@ -54,7 +54,7 @@ export function importAuctionsCollectors() {
 }
 
 export async function fetchAuctions() {
-    const lastUpdated = DateWrapper.floorUTCMinutes(new Date());
+    const lastUpdated = DateWrapper.roundUTCMinutes(new Date());
     const data = await getAuctions();
 
     const { count } = await prisma.binAuctionsItemLog.createMany({

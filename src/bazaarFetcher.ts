@@ -54,7 +54,8 @@ export function importBazaarCollectors() {
 }
 
 async function fetchBazaar() {
-    const lastUpdated = DateWrapper.floorUTCMinutes(new Date());
+    const lastUpdated = DateWrapper.roundUTCMinutes(new Date());
+
     const data = await getBazaar();
 
     const { count } = await prisma.bazaarItemLog.createMany({
