@@ -7,16 +7,26 @@ export class DateWrapper {
 
     static dayToMs = DateWrapper.hourToMs * 24;
 
+    static flatUTCTime(
+        date: Date | number = new Date(),
+        flatFunc: (x: number) => number,
+        interval: number
+    ) {
+        const milliseconds = Number(date);
+        const newMilliseconds = flatFunc(milliseconds / interval) * interval;
+        return new Date(newMilliseconds);
+    }
+
     static flatUTCMinutes(
         date: Date | number = new Date(),
         flatFunc: (x: number) => number,
         interval: number
     ) {
-        const returnDate = new Date(date);
-        const newMinutes =
-            flatFunc(returnDate.getUTCMinutes() / interval) * interval;
-        returnDate.setUTCMinutes(newMinutes, 0, 0);
-        return returnDate;
+        return DateWrapper.flatUTCTime(
+            date,
+            flatFunc,
+            interval * DateWrapper.minToMs
+        );
     }
 
     static flatUTCHours(
@@ -24,11 +34,11 @@ export class DateWrapper {
         flatFunc: (x: number) => number,
         interval: number
     ) {
-        const returnDate = new Date(date);
-        const newHours =
-            flatFunc(returnDate.getUTCHours() / interval) * interval;
-        returnDate.setUTCHours(newHours, 0, 0, 0);
-        return returnDate;
+        return DateWrapper.flatUTCTime(
+            date,
+            flatFunc,
+            interval * DateWrapper.hourToMs
+        );
     }
 
     static flatUTCDays(
@@ -36,11 +46,11 @@ export class DateWrapper {
         flatFunc: (x: number) => number,
         interval: number
     ) {
-        const returnDate = new Date(date);
-        const newDays = flatFunc(returnDate.getUTCDate() / interval) * interval;
-        returnDate.setUTCDate(newDays);
-        returnDate.setUTCHours(0, 0, 0, 0);
-        return returnDate;
+        return DateWrapper.flatUTCTime(
+            date,
+            flatFunc,
+            interval * DateWrapper.dayToMs
+        );
     }
 
     static floorUTCMinutes(date: Date | number = new Date()) {
