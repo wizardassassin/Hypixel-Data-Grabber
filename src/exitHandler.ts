@@ -12,12 +12,14 @@ export function importExitHandler() {
     });
 
     // Windows
-    // process.on("message", function (msg) {
-    //     // Loose equals
-    //     if (msg == "shutdown") {
-    //         handleUserExit(msg);
-    //     }
-    // });
+    // pm2 doesn't send SIGINT on windows apparently
+    if (process.platform === "win32") {
+        process.on("message", (msg) => {
+            if (msg === "shutdown") {
+                handleUserExit(msg);
+            }
+        });
+    }
 
     process.on("SIGTERM", (code) => {
         handleUserExit(code);
@@ -34,9 +36,7 @@ export async function handleUserExit(signal: unknown) {
     pushedOnce = true;
     console.log("Received Ctrl+C, gracefully shutting down...");
     console.log("Press Ctrl+C again to forcefully shutdown.");
-    await Promise.all(
-        Object.values(customCollectors).map(async (x) => await x.stop())
-    );
+    await Promise.all(Object.values(customCollectors).map((x) => x.stop()));
     await prisma.$disconnect();
     console.timeEnd("Elapsed");
     process.exit(0);

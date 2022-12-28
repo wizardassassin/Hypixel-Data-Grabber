@@ -6,6 +6,6 @@ module.exports = {
     time: true,
     log: true,
     kill_timeout: 5000,
-    shutdown_with_message: false // Windows
+    shutdown_with_message: process.platform === "win32" // Windows
   }]
 }
