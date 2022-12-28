@@ -12,6 +12,10 @@ export interface CollectorObj {
     log(logWrapper: () => void, logLevel: number): void;
 }
 
+let minLogLevel = 0;
+export const setMinLogLevel = (x: number) => (minLogLevel = x);
+export const getMinLogLevel = () => minLogLevel;
+
 export const createTimeout = ({
     collectorWrapper,
     getInterval,
@@ -34,7 +38,7 @@ export const createTimeout = ({
     _rej: null,
     _collectorWrapper: collectorWrapper, // this
     start() {
-        this.log(() => console.log("Starting", name), 1);
+        this.log(() => console.log("Starting", name), 3);
         const workerCallback = async () => {
             this.log(() => console.log("Started", name), 3);
             this.log(() => console.time(name), 3);
@@ -76,7 +80,7 @@ export const createTimeout = ({
         this.log(() => console.log(`First ${name}:`, this.nextRun), 1);
     },
     async stop() {
-        this.log(() => console.log("Stopping", name), 1);
+        this.log(() => console.log("Stopping", name), 3);
         this._stopRunning = true;
         clearInterval(this._timeout);
         if (!this.isRunning) {
@@ -87,7 +91,7 @@ export const createTimeout = ({
         await this._promise;
     },
     log(logWrapper, logLevel) {
-        if (logLevel <= loggingLevel) {
+        if (logLevel <= Math.max(loggingLevel, minLogLevel)) {
             logWrapper();
         }
     },
