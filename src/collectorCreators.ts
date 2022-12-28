@@ -34,6 +34,7 @@ export const createTimeout = ({
     _rej: null,
     _collectorWrapper: collectorWrapper, // this
     start() {
+        this.log(() => console.log("Starting", name), 1);
         const workerCallback = async () => {
             this.log(() => console.log("Started", name), 3);
             this.log(() => console.time(name), 3);
@@ -60,15 +61,22 @@ export const createTimeout = ({
             this.rej = rej;
         });
         if (runOnReady) {
+            this.log(() => console.log(`First ${name} in`, 0, "seconds"), 1);
+            this.log(() => console.log(`First ${name}:`, new Date()), 1);
             workerCallback();
             return;
         }
         const waitTime = getInterval();
         this.nextRun = new Date(Date.now() + waitTime);
         this._timeout = setTimeout(workerCallback, waitTime);
-        this.log(() => console.log(`Next ${name}:`, this.nextRun), 3);
+        this.log(
+            () => console.log(`First ${name} in`, waitTime / 1000, "seconds"),
+            1
+        );
+        this.log(() => console.log(`First ${name}:`, this.nextRun), 1);
     },
     async stop() {
+        this.log(() => console.log("Stopping", name), 1);
         this._stopRunning = true;
         clearInterval(this._timeout);
         if (!this.isRunning) {
