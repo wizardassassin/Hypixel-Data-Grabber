@@ -152,7 +152,6 @@ async function getNBTData(itemBytes: string) {
         } else if (id === "RUNE") {
             const rune = attr1.value.runes.value;
             const types = Object.keys(rune);
-            console.log(rune);
             if (types.length !== 1) console.error(types);
             const type = types[0];
             const level = rune[type].value;
