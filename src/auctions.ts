@@ -154,6 +154,10 @@ async function getNBTData(itemBytes: string) {
         }
     } catch (error) {
         console.error(error);
+        // eslint-disable-next-line @typescript-eslint/ban-ts-comment
+        // @ts-ignore
+        const display = parsed.value.i.value.value[0].tag.value.display.value;
+        console.error({ Lore: display.Lore.value.value, Name: display.Name });
         console.error(attr1.value);
         return `${id}`;
     }
