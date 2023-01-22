@@ -12,7 +12,7 @@ export function importBazaarCollectors() {
         startTime:
             DateWrapper.floorUTCMinutes().valueOf() +
             DateWrapper.minToMs * 0 +
-            DateWrapper.secToMs * 0,
+            DateWrapper.secToMs * 15,
     });
     customCollectors["Bazaar Collector"] = collector;
 

@@ -12,7 +12,7 @@ export function importAuctionsCollectors() {
         startTime:
             DateWrapper.floorUTCFiveMinutes().valueOf() +
             DateWrapper.minToMs * 0 +
-            DateWrapper.secToMs * 0,
+            DateWrapper.secToMs * 15,
     });
     customCollectors["Auctions Collector"] = collector;
 
