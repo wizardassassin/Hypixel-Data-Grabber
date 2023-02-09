@@ -2,14 +2,16 @@ export class FetchWrapper {
     static async fetch(urlStr: string, timeout = 55000) {
         const url = new URL(urlStr);
         const controller = new AbortController();
-        setTimeout(() => controller.abort(), timeout);
+        const abortTimeout = setTimeout(() => controller.abort(), timeout);
         // Does not call FetchWrapper.fetch
         const res = await fetch(url, { signal: controller.signal }).catch(
             (error) => {
                 console.error({ url: FetchWrapper.filterURL(url).href });
+                clearTimeout(abortTimeout);
                 throw error;
             }
         );
+        clearTimeout(abortTimeout);
         if (!res.ok) {
             console.error({
                 url: FetchWrapper.filterURL(url).href,
