@@ -15,7 +15,8 @@ if (process.env.NODE_ENV === "production") {
 }
 
 if (process.env.NODE_ENV === "development") {
-    (await import("./debug.js")).default();
+    const debugFile = await import("./debug.js");
+    await debugFile.default();
 }
 
 console.log("Initialized");
