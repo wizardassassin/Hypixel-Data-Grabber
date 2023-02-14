@@ -34,10 +34,6 @@ export function bazaarFetcher() {
     });
 }
 
-export function importBazaarCollectors() {
-    return;
-}
-
 async function fetchBazaar(date: Date) {
     const newDate = date;
     const data = await getBazaar();
