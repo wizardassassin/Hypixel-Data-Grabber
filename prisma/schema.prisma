@@ -40,6 +40,38 @@ model BinAuctionsItemLog {
   @@unique([itemId, lastUpdated, logRange])
 }
 
+model Game {
+  logId      String           @id @default(uuid())
+  createdAt  DateTime         @default(now())
+  updatedAt  DateTime         @updatedAt
+  gameId     String           @unique
+  gameName   String
+  isGamemode Boolean
+  recent     PlayerCountLog?  @relation("RecentArchive")
+  counts     PlayerCountLog[] @relation("CountArchive")
+
+  gamemodes Game[]  @relation("Gamemodes")
+  Game      Game?   @relation("Gamemodes", fields: [GameLogId], references: [logId])
+  GameLogId String?
+}
+
+model PlayerCountLog {
+  logId    String           @id @default(uuid())
+  logRange AggregationRange
+
+  gameId      String
+  lastUpdated DateTime
+  playerCount Float
+
+  ArchiveGame      Game?   @relation("CountArchive", fields: [ArchiveGameLogId], references: [gameId])
+  ArchiveGameLogId String?
+
+  RecentGame      Game?   @relation("RecentArchive", fields: [RecentGameLogId], references: [gameId])
+  RecentGameLogId String? @unique
+
+  @@unique([gameId, lastUpdated])
+}
+
 enum AggregationRange {
   oneMinute
   fiveMinutes
