@@ -137,7 +137,8 @@ export const createClockTimeoutWrapper = ({
         collectorWrapper,
         // Seems to work with start times with at a max of ${interval} time in the future
         // Will still wait for ${interval} if Date.now() === startTime
-        getInterval: () => interval - ((Date.now() - startTime) % interval),
+        getInterval: () =>
+            (interval - ((Date.now() - startTime) % interval)) % interval,
         name,
         runOnReady,
         loggingLevel,
