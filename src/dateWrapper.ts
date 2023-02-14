@@ -84,4 +84,30 @@ export class DateWrapper {
     static roundUTCDays(date: Date | number = new Date()) {
         return DateWrapper.flatUTCDays(date, Math.round, 1);
     }
+
+    static createOffset({
+        day = 0,
+        hour = 0,
+        min = 0,
+        sec = 0,
+        scaler = 1,
+    }: {
+        day?: number;
+        hour?: number;
+        min?: number;
+        sec?: number;
+        scaler?: number;
+    }) {
+        return (
+            (DateWrapper.dayToMs * day +
+                DateWrapper.hourToMs * hour +
+                DateWrapper.minToMs * min +
+                DateWrapper.secToMs * sec) *
+            scaler
+        );
+    }
+
+    static modifyDate(date: Date | number = new Date(), offset: number) {
+        return new Date(Number(date) + offset);
+    }
 }
