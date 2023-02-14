@@ -1,67 +1,52 @@
 import { getBazaar } from "./bazaar.js";
-import { createClockTimeoutWrapper } from "./collectorCreators.js";
-import { customCollectors } from "./collectors.js";
 import prisma from "./database.js";
 import { DateWrapper } from "./dateWrapper.js";
+import { FetcherWrapper } from "./fetcherWrapper.js";
 
-export function importBazaarCollectors() {
-    const collector = createClockTimeoutWrapper({
-        collectorWrapper: fetchBazaar,
+export function bazaarFetcher() {
+    const fetcher = new FetcherWrapper({
+        name: "Bazaar",
+        countType: "Item(s)",
+    });
+    fetcher.addCollector({
+        runFunction: fetchBazaar,
         interval: DateWrapper.minToMs,
-        name: "Bazaar Collector",
-        startTime:
-            DateWrapper.floorUTCMinutes().valueOf() +
-            DateWrapper.minToMs * 0 +
-            DateWrapper.secToMs * 15,
+        loggingLevel: 1,
+        offset: DateWrapper.createOffset({ sec: 15 }),
     });
-    customCollectors["Bazaar Collector"] = collector;
-
-    const aggregatorHourly = createClockTimeoutWrapper({
-        collectorWrapper: aggregateBazaarHourly,
+    fetcher.addAggregator({
+        runFunction: bazaarHourly,
         interval: DateWrapper.hourToMs,
-        name: "Bazaar Aggregator Hourly",
         loggingLevel: 2,
-        startTime:
-            DateWrapper.floorUTCHours().valueOf() +
-            DateWrapper.minToMs * 1 +
-            DateWrapper.secToMs * 15,
+        offset: DateWrapper.createOffset({ min: 1 }),
     });
-    customCollectors["Bazaar Aggregator Hourly"] = aggregatorHourly;
-
-    const cleaner = createClockTimeoutWrapper({
-        collectorWrapper: cleanBazaar,
+    fetcher.addDeleter({
+        runFunction: cleanBazaar,
         interval: DateWrapper.hourToMs,
-        name: "Bazaar Cleaner",
         loggingLevel: 2,
-        startTime:
-            DateWrapper.floorUTCDays().valueOf() +
-            DateWrapper.minToMs * 0 +
-            DateWrapper.secToMs * 30,
+        offset: DateWrapper.createOffset({ sec: 0 }),
     });
-    customCollectors["Bazaar Cleaner"] = cleaner;
-
-    const aggregatorDaily = createClockTimeoutWrapper({
-        collectorWrapper: aggregateBazaarDaily,
+    fetcher.addAggregator({
+        runFunction: aggregateBazaarDaily,
         interval: DateWrapper.dayToMs,
-        name: "Bazaar Aggregator Daily",
         loggingLevel: 2,
-        startTime:
-            DateWrapper.floorUTCDays().valueOf() +
-            DateWrapper.minToMs * 2 +
-            DateWrapper.secToMs * 45,
+        offset: DateWrapper.createOffset({ min: 2 }),
     });
-    customCollectors["Bazaar Aggregator Daily"] = aggregatorDaily;
 }
 
-async function fetchBazaar() {
-    const lastUpdated = DateWrapper.roundUTCMinutes(new Date());
+export function importBazaarCollectors() {
+    return;
+}
+
+async function fetchBazaar(date: Date) {
+    const newDate = date;
     const data = await getBazaar();
 
     const { count } = await prisma.bazaarItemLog.createMany({
         data: data.bazaarArr.map((x) => ({
             logRange: "oneMinute",
             productId: x.productId,
-            lastUpdated: lastUpdated,
+            lastUpdated: newDate,
             sellPriceTop: x.sellPriceSum,
             buyPriceTop: x.buyPriceSum,
             sellPrice: x.sellPrice,
@@ -74,31 +59,35 @@ async function fetchBazaar() {
             buyOrders: x.buyOrders,
         })),
     });
-    this.log?.(() => console.log("Added", count, "Bazaar Items"), 2);
+    return count;
 }
 
-async function cleanBazaar() {
-    const floorDate = DateWrapper.floorUTCHours();
-    floorDate.setUTCHours(floorDate.getUTCHours() - 24 * 2);
+async function cleanBazaar(date: Date) {
+    const newDate = DateWrapper.modifyDate(
+        date,
+        DateWrapper.createOffset({ day: -2 })
+    );
     const { count } = await prisma.bazaarItemLog.deleteMany({
         where: {
             lastUpdated: {
-                lt: floorDate,
+                lt: newDate,
             },
             logRange: "oneMinute",
         },
     });
-    this.log?.(() => console.log("Deleted", count, "Bazaar Items"), 2);
+    return count;
 }
 
-async function aggregateBazaarHourly() {
-    const floorDate = DateWrapper.floorUTCHours();
-    floorDate.setUTCHours(floorDate.getUTCHours() - 1);
+async function bazaarHourly(date: Date) {
+    const newDate = DateWrapper.modifyDate(
+        date,
+        DateWrapper.createOffset({ hour: -1 })
+    );
     const data = await prisma.bazaarItemLog.groupBy({
         by: ["productId"],
         where: {
             lastUpdated: {
-                gte: floorDate,
+                gte: newDate,
             },
             logRange: "oneMinute",
         },
@@ -116,14 +105,13 @@ async function aggregateBazaarHourly() {
         },
     });
     if (data.length === 0) {
-        console.error("Can't find anything Bazaar items to aggregate.");
-        return;
+        return 0;
     }
     const { count } = await prisma.bazaarItemLog.createMany({
         data: data.map((x) => ({
             productId: x.productId,
             logRange: "oneHour",
-            lastUpdated: floorDate,
+            lastUpdated: newDate,
             sellPriceTop: x._avg.sellPriceTop,
             buyPriceTop: x._avg.buyPriceTop,
             sellPrice: x._avg.sellPrice,
@@ -136,17 +124,19 @@ async function aggregateBazaarHourly() {
             buyOrders: x._avg.buyOrders,
         })),
     });
-    this.log?.(() => console.log("Aggregated", count, "Bazaar Items"), 2);
+    return count;
 }
 
-async function aggregateBazaarDaily() {
-    const floorDate = DateWrapper.floorUTCDays();
-    floorDate.setUTCHours(floorDate.getUTCHours() - 24);
+async function aggregateBazaarDaily(date: Date) {
+    const newDate = DateWrapper.modifyDate(
+        date,
+        DateWrapper.createOffset({ day: -1 })
+    );
     const data = await prisma.bazaarItemLog.groupBy({
         by: ["productId"],
         where: {
             lastUpdated: {
-                gte: floorDate,
+                gte: newDate,
             },
             logRange: "oneHour",
         },
@@ -164,14 +154,13 @@ async function aggregateBazaarDaily() {
         },
     });
     if (data.length === 0) {
-        console.error("Can't find anything to aggregate.");
-        return;
+        return 0;
     }
     const { count } = await prisma.bazaarItemLog.createMany({
         data: data.map((x) => ({
             productId: x.productId,
             logRange: "oneDay",
-            lastUpdated: floorDate,
+            lastUpdated: newDate,
             sellPriceTop: x._avg.sellPriceTop,
             buyPriceTop: x._avg.buyPriceTop,
             sellPrice: x._avg.sellPrice,
@@ -184,5 +173,5 @@ async function aggregateBazaarDaily() {
             buyOrders: x._avg.buyOrders,
         })),
     });
-    this.log?.(() => console.log("Aggregated", count, "Bazaar Items"), 2);
+    return count;
 }
