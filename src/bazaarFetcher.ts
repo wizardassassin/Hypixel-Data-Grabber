@@ -32,6 +32,7 @@ export function bazaarFetcher() {
         loggingLevel: 2,
         offset: DateWrapper.createOffset({ min: 2 }),
     });
+    return fetcher;
 }
 
 async function fetchBazaar(date: Date) {
