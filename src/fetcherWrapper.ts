@@ -49,30 +49,35 @@ export class FetcherWrapper {
     createGeneric({
         runFunction,
         interval,
+        dateOffset = 0,
+        startOffset = 0,
         loggingLevel = 1,
-        offset = 0,
         runType,
         objArr,
     }: {
         runFunction: { (date: Date): Promise<number> };
         interval: number;
+        dateOffset?: number;
+        startOffset?: number;
         loggingLevel?: number;
-        offset?: number;
         runType: WordObj;
         objArr: CollectorObj[];
     }) {
         const intervalType = FetcherWrapper.timeIntervals.has(interval)
             ? ` ${FetcherWrapper.timeIntervals.get(interval)}`
             : "";
-        const getTime = () =>
-            DateWrapper.flatUTCTime(new Date(), Math.round, interval);
+        const getTime = (dateOffset = 0) =>
+            DateWrapper.modifyDate(
+                DateWrapper.flatUTCTime(new Date(), Math.round, interval),
+                dateOffset
+            );
         const newName = `${this.name} ${runType.noun}${intervalType}`;
         const nameInfo = this.name;
         const typeInfo = this.countType;
-        const startTime = getTime().valueOf() + offset;
+        const startTime = getTime().valueOf() + startOffset;
         const repeater = createClockTimeoutWrapper({
             async collectorWrapper() {
-                const time = getTime();
+                const time = getTime(dateOffset);
                 const count = await runFunction(time);
                 this.log?.(
                     () => console.log(runType.past, count, nameInfo, typeInfo),
@@ -92,19 +97,22 @@ export class FetcherWrapper {
     addCollector({
         runFunction,
         interval,
+        dateOffset = 0,
+        startOffset = 0,
         loggingLevel = 1,
-        offset = 0,
     }: {
         runFunction: { (date: Date): Promise<number> };
         interval: number;
+        dateOffset?: number;
+        startOffset?: number;
         loggingLevel?: number;
-        offset?: number;
     }) {
         this.createGeneric({
             runFunction,
             interval,
+            dateOffset,
+            startOffset,
             loggingLevel,
-            offset,
             runType: FetcherWrapper.collectorWords,
             objArr: this.collectors,
         });
@@ -113,19 +121,22 @@ export class FetcherWrapper {
     addAggregator({
         runFunction,
         interval,
+        dateOffset = 0,
+        startOffset = 0,
         loggingLevel = 1,
-        offset = 0,
     }: {
         runFunction: { (date: Date): Promise<number> };
         interval: number;
+        dateOffset?: number;
+        startOffset?: number;
         loggingLevel?: number;
-        offset?: number;
     }) {
         this.createGeneric({
             runFunction,
             interval,
+            dateOffset,
+            startOffset,
             loggingLevel,
-            offset,
             runType: FetcherWrapper.aggregatorWords,
             objArr: this.aggregators,
         });
@@ -134,19 +145,22 @@ export class FetcherWrapper {
     addDeleter({
         runFunction,
         interval,
+        dateOffset = 0,
+        startOffset = 0,
         loggingLevel = 1,
-        offset = 0,
     }: {
         runFunction: { (date: Date): Promise<number> };
         interval: number;
+        dateOffset?: number;
+        startOffset?: number;
         loggingLevel?: number;
-        offset?: number;
     }) {
         this.createGeneric({
             runFunction,
             interval,
+            dateOffset,
+            startOffset,
             loggingLevel,
-            offset,
             runType: FetcherWrapper.deleterWords,
             objArr: this.deleters,
         });
