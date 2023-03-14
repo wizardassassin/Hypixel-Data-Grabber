@@ -7,6 +7,20 @@ datasource db {
   url      = env("DATABASE_URL")
 }
 
+model BazaarItem {
+  logId     String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  productId String   @unique
+
+  rollHour BazaarItemLog? @relation("RollHourBazaar")
+  rollDay  BazaarItemLog? @relation("RollDayBazaar")
+  rollWeek BazaarItemLog? @relation("RollWeekBazaar")
+
+  recent  BazaarItemLog?  @relation("RecentBazaar")
+  archive BazaarItemLog[] @relation("ArchiveBazaar")
+}
+
 model BazaarItemLog {
   logId    String           @id @default(uuid())
   logRange AggregationRange
@@ -24,7 +38,36 @@ model BazaarItemLog {
   sellOrders     Float
   buyOrders      Float
 
+  HourBazaar          BazaarItem? @relation("RollHourBazaar", fields: [HourBazaarProductId], references: [productId])
+  HourBazaarProductId String?     @unique
+
+  DayBazaar          BazaarItem? @relation("RollDayBazaar", fields: [DayBazaarProductId], references: [productId])
+  DayBazaarProductId String?     @unique
+
+  WeekBazaar          BazaarItem? @relation("RollWeekBazaar", fields: [WeekBazaarProductId], references: [productId])
+  WeekBazaarProductId String?     @unique
+
+  RecentBazaar          BazaarItem? @relation("RecentBazaar", fields: [RecentBazaarProductId], references: [productId])
+  RecentBazaarProductId String?     @unique
+
+  ArchiveBazaar          BazaarItem? @relation("ArchiveBazaar", fields: [ArchiveBazaarProductId], references: [productId])
+  ArchiveBazaarProductId String?
+
   @@unique([productId, lastUpdated, logRange])
+}
+
+model AuctionsItem {
+  logId     String   @id @default(uuid())
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  itemId    String   @unique
+
+  rollHourBin BinAuctionsItemLog? @relation("RollHourBinAuctions")
+  rollDayBin  BinAuctionsItemLog? @relation("RollDayBinAuctions")
+  rollWeekBin BinAuctionsItemLog? @relation("RollWeekBinAuctions")
+
+  recentBin  BinAuctionsItemLog?  @relation("RecentBinAuctions")
+  archiveBin BinAuctionsItemLog[] @relation("ArchiveBinAuctions")
 }
 
 model BinAuctionsItemLog {
@@ -37,18 +80,38 @@ model BinAuctionsItemLog {
   lowestBinAvg Float
   count        Float
 
+  HourAuctions       AuctionsItem? @relation("RollHourBinAuctions", fields: [HourAuctionsItemId], references: [itemId])
+  HourAuctionsItemId String?       @unique
+
+  DayAuctions       AuctionsItem? @relation("RollDayBinAuctions", fields: [DayAuctionsItemId], references: [itemId])
+  DayAuctionsItemId String?       @unique
+
+  WeekAuctions       AuctionsItem? @relation("RollWeekBinAuctions", fields: [WeekAuctionsItemId], references: [itemId])
+  WeekAuctionsItemId String?       @unique
+
+  RecentAuctions       AuctionsItem? @relation("RecentBinAuctions", fields: [RecentAuctionsItemId], references: [itemId])
+  RecentAuctionsItemId String?       @unique
+
+  ArchiveAuctions       AuctionsItem? @relation("ArchiveBinAuctions", fields: [ArchiveAuctionsItemId], references: [itemId])
+  ArchiveAuctionsItemId String?
+
   @@unique([itemId, lastUpdated, logRange])
 }
 
 model Game {
-  logId      String           @id @default(uuid())
-  createdAt  DateTime         @default(now())
-  updatedAt  DateTime         @updatedAt
-  gameId     String           @unique
+  logId      String   @id @default(uuid())
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+  gameId     String   @unique
   gameName   String
   isGamemode Boolean
-  recent     PlayerCountLog?  @relation("RecentArchive")
-  counts     PlayerCountLog[] @relation("CountArchive")
+
+  rollHour PlayerCountLog? @relation("RollHourGame")
+  rollDay  PlayerCountLog? @relation("RollDayGame")
+  rollWeek PlayerCountLog? @relation("RollWeekGame")
+
+  recent  PlayerCountLog?  @relation("RecentGame")
+  archive PlayerCountLog[] @relation("ArchiveGame")
 
   gamemodes Game[]  @relation("Gamemodes")
   Game      Game?   @relation("Gamemodes", fields: [GameLogId], references: [logId])
@@ -63,13 +126,22 @@ model PlayerCountLog {
   lastUpdated DateTime
   playerCount Float
 
-  ArchiveGame      Game?   @relation("CountArchive", fields: [ArchiveGameLogId], references: [gameId])
-  ArchiveGameLogId String?
+  HourGame      Game?   @relation("RollHourGame", fields: [HourGameLogId], references: [gameId])
+  HourGameLogId String? @unique
 
-  RecentGame      Game?   @relation("RecentArchive", fields: [RecentGameLogId], references: [gameId])
+  DayGame      Game?   @relation("RollDayGame", fields: [DayGameLogId], references: [gameId])
+  DayGameLogId String? @unique
+
+  WeekGame      Game?   @relation("RollWeekGame", fields: [WeekGameLogId], references: [gameId])
+  WeekGameLogId String? @unique
+
+  RecentGame      Game?   @relation("RecentGame", fields: [RecentGameLogId], references: [gameId])
   RecentGameLogId String? @unique
 
-  @@unique([gameId, lastUpdated])
+  ArchiveGame      Game?   @relation("ArchiveGame", fields: [ArchiveGameLogId], references: [gameId])
+  ArchiveGameLogId String?
+
+  @@unique([gameId, lastUpdated, logRange])
 }
 
 enum AggregationRange {
