@@ -11,39 +11,42 @@ export function bazaarFetcher() {
     fetcher.addCollector({
         runFunction: fetchBazaar,
         interval: DateWrapper.minToMs,
+        dateOffset: DateWrapper.createOffset({ sec: 0 }),
+        startOffset: DateWrapper.createOffset({ sec: 15 }),
         loggingLevel: 1,
-        offset: DateWrapper.createOffset({ sec: 15 }),
     });
     fetcher.addAggregator({
         runFunction: bazaarHourly,
         interval: DateWrapper.hourToMs,
+        dateOffset: DateWrapper.createOffset({ hour: -1 }),
+        startOffset: DateWrapper.createOffset({ min: 1 }),
         loggingLevel: 2,
-        offset: DateWrapper.createOffset({ min: 1 }),
     });
     fetcher.addDeleter({
         runFunction: cleanBazaar,
         interval: DateWrapper.hourToMs,
+        dateOffset: DateWrapper.createOffset({ day: -2 }),
+        startOffset: DateWrapper.createOffset({ sec: 0 }),
         loggingLevel: 2,
-        offset: DateWrapper.createOffset({ sec: 0 }),
     });
     fetcher.addAggregator({
         runFunction: aggregateBazaarDaily,
         interval: DateWrapper.dayToMs,
+        dateOffset: DateWrapper.createOffset({ day: -1 }),
+        startOffset: DateWrapper.createOffset({ min: 2 }),
         loggingLevel: 2,
-        offset: DateWrapper.createOffset({ min: 2 }),
     });
     return fetcher;
 }
 
 async function fetchBazaar(date: Date) {
-    const newDate = date;
     const data = await getBazaar();
 
     const { count } = await prisma.bazaarItemLog.createMany({
         data: data.bazaarArr.map((x) => ({
             logRange: "oneMinute",
             productId: x.productId,
-            lastUpdated: newDate,
+            lastUpdated: date,
             sellPriceTop: x.sellPriceSum,
             buyPriceTop: x.buyPriceSum,
             sellPrice: x.sellPrice,
@@ -60,14 +63,10 @@ async function fetchBazaar(date: Date) {
 }
 
 async function cleanBazaar(date: Date) {
-    const newDate = DateWrapper.modifyDate(
-        date,
-        DateWrapper.createOffset({ day: -2 })
-    );
     const { count } = await prisma.bazaarItemLog.deleteMany({
         where: {
             lastUpdated: {
-                lt: newDate,
+                lt: date,
             },
             logRange: "oneMinute",
         },
@@ -76,15 +75,11 @@ async function cleanBazaar(date: Date) {
 }
 
 async function bazaarHourly(date: Date) {
-    const newDate = DateWrapper.modifyDate(
-        date,
-        DateWrapper.createOffset({ hour: -1 })
-    );
     const data = await prisma.bazaarItemLog.groupBy({
         by: ["productId"],
         where: {
             lastUpdated: {
-                gte: newDate,
+                gte: date,
             },
             logRange: "oneMinute",
         },
@@ -108,7 +103,7 @@ async function bazaarHourly(date: Date) {
         data: data.map((x) => ({
             productId: x.productId,
             logRange: "oneHour",
-            lastUpdated: newDate,
+            lastUpdated: date,
             sellPriceTop: x._avg.sellPriceTop,
             buyPriceTop: x._avg.buyPriceTop,
             sellPrice: x._avg.sellPrice,
@@ -125,15 +120,11 @@ async function bazaarHourly(date: Date) {
 }
 
 async function aggregateBazaarDaily(date: Date) {
-    const newDate = DateWrapper.modifyDate(
-        date,
-        DateWrapper.createOffset({ day: -1 })
-    );
     const data = await prisma.bazaarItemLog.groupBy({
         by: ["productId"],
         where: {
             lastUpdated: {
-                gte: newDate,
+                gte: date,
             },
             logRange: "oneHour",
         },
@@ -157,7 +148,7 @@ async function aggregateBazaarDaily(date: Date) {
         data: data.map((x) => ({
             productId: x.productId,
             logRange: "oneDay",
-            lastUpdated: newDate,
+            lastUpdated: date,
             sellPriceTop: x._avg.sellPriceTop,
             buyPriceTop: x._avg.buyPriceTop,
             sellPrice: x._avg.sellPrice,

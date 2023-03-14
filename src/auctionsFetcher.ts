@@ -11,39 +11,42 @@ export function auctionsFetcher() {
     fetcher.addCollector({
         runFunction: fetchAuctions,
         interval: DateWrapper.minToMs * 5,
+        dateOffset: DateWrapper.createOffset({ sec: 0 }),
+        startOffset: DateWrapper.createOffset({ sec: 15 }),
         loggingLevel: 1,
-        offset: DateWrapper.createOffset({ sec: 15 }),
     });
     fetcher.addAggregator({
         runFunction: aggregateAuctionsHourly,
         interval: DateWrapper.hourToMs,
+        dateOffset: DateWrapper.createOffset({ hour: -1 }),
+        startOffset: DateWrapper.createOffset({ min: 1 }),
         loggingLevel: 2,
-        offset: DateWrapper.createOffset({ min: 1 }),
     });
     fetcher.addDeleter({
         runFunction: cleanAuctions,
         interval: DateWrapper.hourToMs,
+        dateOffset: DateWrapper.createOffset({ day: -2 }),
+        startOffset: DateWrapper.createOffset({ sec: 0 }),
         loggingLevel: 2,
-        offset: DateWrapper.createOffset({ sec: 0 }),
     });
     fetcher.addAggregator({
         runFunction: aggregateAuctionsDaily,
         interval: DateWrapper.dayToMs,
+        dateOffset: DateWrapper.createOffset({ day: -1 }),
+        startOffset: DateWrapper.createOffset({ min: 2 }),
         loggingLevel: 2,
-        offset: DateWrapper.createOffset({ min: 2 }),
     });
     return fetcher;
 }
 
 export async function fetchAuctions(date: Date) {
-    const newDate = date;
     const data = await getAuctions();
 
     const { count } = await prisma.binAuctionsItemLog.createMany({
         data: data.auctions.map((x) => ({
             logRange: "fiveMinutes",
             itemId: x.itemId,
-            lastUpdated: newDate,
+            lastUpdated: date,
             lowestBin: x.lowestBin,
             lowestBinAvg: x.lowestBinAvg,
             count: x.count,
@@ -53,14 +56,10 @@ export async function fetchAuctions(date: Date) {
 }
 
 async function cleanAuctions(date: Date) {
-    const newDate = DateWrapper.modifyDate(
-        date,
-        DateWrapper.createOffset({ day: -2 })
-    );
     const { count } = await prisma.binAuctionsItemLog.deleteMany({
         where: {
             lastUpdated: {
-                lt: newDate,
+                lt: date,
             },
             logRange: "fiveMinutes",
         },
@@ -69,15 +68,11 @@ async function cleanAuctions(date: Date) {
 }
 
 async function aggregateAuctionsHourly(date: Date) {
-    const newDate = DateWrapper.modifyDate(
-        date,
-        DateWrapper.createOffset({ hour: -1 })
-    );
     const data = await prisma.binAuctionsItemLog.groupBy({
         by: ["itemId"],
         where: {
             lastUpdated: {
-                gte: newDate,
+                gte: date,
             },
             logRange: "fiveMinutes",
         },
@@ -94,7 +89,7 @@ async function aggregateAuctionsHourly(date: Date) {
         data: data.map((x) => ({
             itemId: x.itemId,
             logRange: "oneHour",
-            lastUpdated: newDate,
+            lastUpdated: date,
             lowestBin: x._avg.lowestBin,
             lowestBinAvg: x._avg.lowestBinAvg,
             count: x._avg.count,
@@ -104,15 +99,11 @@ async function aggregateAuctionsHourly(date: Date) {
 }
 
 async function aggregateAuctionsDaily(date: Date) {
-    const newDate = DateWrapper.modifyDate(
-        date,
-        DateWrapper.createOffset({ day: -1 })
-    );
     const data = await prisma.binAuctionsItemLog.groupBy({
         by: ["itemId"],
         where: {
             lastUpdated: {
-                gte: newDate,
+                gte: date,
             },
             logRange: "oneHour",
         },
@@ -129,7 +120,7 @@ async function aggregateAuctionsDaily(date: Date) {
         data: data.map((x) => ({
             itemId: x.itemId,
             logRange: "oneDay",
-            lastUpdated: newDate,
+            lastUpdated: date,
             lowestBin: x._avg.lowestBin,
             lowestBinAvg: x._avg.lowestBinAvg,
             count: x._avg.count,
